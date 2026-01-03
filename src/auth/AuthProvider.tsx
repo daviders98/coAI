@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AuthContext } from "./AuthContext";
 import type { User } from "./AuthTypes";
+import type { Note } from "@/notes/NoteTypes";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
@@ -9,7 +10,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   const login = (email: string) => {
-    const newUser = { id: crypto.randomUUID(), email: email };
+    const notes: Note[] = JSON.parse(localStorage.getItem("coai_notes") || "[]");
+
+    const member = notes.map((note) => note.members.find((m) => m.email === email)).find(Boolean);
+
+    const newUser = { id: member?.userId || crypto.randomUUID(), email };
     localStorage.setItem("user", JSON.stringify(newUser));
     setUser(newUser);
   };
