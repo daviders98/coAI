@@ -22,9 +22,9 @@ export default function NoteCard({ note, userId, onDelete, onRename }: NoteCardP
       <li className="group relative rounded-lg border p-4 transition hover:shadow-sm">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1 space-y-1">
-            <div className="flex justify-between">
+            <div className="flex w-full justify-between">
               <h2
-                className={`truncate font-medium ${
+                className={`flex-1 truncate font-medium ${
                   canEdit ? "cursor-pointer hover:underline" : ""
                 }`}
                 onClick={() => canEdit && setIsEditOpen(true)}
