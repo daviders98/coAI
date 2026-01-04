@@ -21,8 +21,8 @@ type Props = {
 };
 
 export function NoteEditModal({ open, onOpenChange, note, onSave }: Props) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState<NoteDescription[]>(EMPTY_EDITOR_VALUE);
+  const [title, setTitle] = useState(note.title);
+  const [description, setDescription] = useState<NoteDescription[]>(note.description || []);
 
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
@@ -33,15 +33,14 @@ export function NoteEditModal({ open, onOpenChange, note, onSave }: Props) {
   }
 
   function handleSave() {
-    if (!note.id) return;
-
-    onSave({
-      id: note.id,
-      patch: {
-        title: title.trim(),
-        description,
-      },
-    });
+    if (note.id && title)
+      onSave({
+        id: note.id,
+        patch: {
+          title: title.trim(),
+          description,
+        },
+      });
 
     onOpenChange(false);
   }

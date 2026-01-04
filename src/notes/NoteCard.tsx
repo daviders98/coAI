@@ -17,7 +17,9 @@ export default function NoteCard({ note, userId, onDelete, onUpdate }: NoteCardP
 
   return (
     <>
-      <li className="group relative rounded-lg border p-4 transition hover:shadow-sm">
+      <li className="group relative min-w-0 max-w-full rounded-lg border border-border bg-card p-4 shadow-sm transition hover:scale-[1.02] hover:shadow-md sm:hover:scale-[1.03] sm:hover:shadow-lg">
+        <div className="absolute left-0 top-0 h-full w-1 rounded-l-md bg-primary"></div>
+
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1 space-y-1">
             <div className="flex w-full items-start justify-between">
@@ -55,9 +57,7 @@ export default function NoteCard({ note, userId, onDelete, onUpdate }: NoteCardP
             </div>
 
             <p
-              className={`truncate text-sm text-muted-foreground ${
-                canEdit ? "cursor-pointer sm:hover:underline" : ""
-              }`}
+              className="max-h-24 overflow-hidden break-words text-sm text-muted-foreground"
               onClick={() => canEdit && setIsEditOpen(true)}
             >
               {note.description ? slateToPlainText(note.description) : "No description"}

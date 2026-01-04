@@ -1,26 +1,39 @@
 import { Navigate } from "react-router-dom";
+import { useState } from "react";
 import useAuth from "@/auth/useAuth";
 import { useNotes } from "@/notes/useNotes";
 import logo from "@/assets/logo.webp";
 import NoteCard from "@/notes/NoteCard";
 import { Plus } from "lucide-react";
+import SearchBar from "@/components/SearchBar";
 
 function HomePage() {
   const { user, logout } = useAuth();
   const { notes, createNote, deleteNote, updateNote } = useNotes();
+  const [search, setSearch] = useState("");
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
+  const filteredNotes = notes.filter((note) => {
+    const text =
+      note.title +
+      " " +
+      (note.description?.map((p) => p.children.map((c) => c.text).join("")).join("\n") ?? "");
+    return text.toLowerCase().includes(search.toLowerCase());
+  });
+
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <img src={logo} alt="App logo" className="h-12 w-auto" />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center justify-center gap-4">
+          <img src={logo} alt="App logo" className="h-12 w-auto" />
+          <h1 className="text-2xl font-semibold">coAI</h1>
+        </div>
 
-        <h1 className="text-2xl font-semibold">All Notes</h1>
-
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <SearchBar value={search} onChange={setSearch} placeholder="Search notes..." />
           <button
             onClick={() => createNote({ title: "New note", userId: user.id, email: user.email })}
             className="hover:bg-primary/90 flex items-center justify-center rounded bg-primary p-2 text-sm text-background transition"
@@ -35,18 +48,21 @@ function HomePage() {
         </div>
       </div>
 
-      {notes.length === 0 && <p className="text-sm text-muted-foreground">No notes yet.</p>}
-      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-        {notes.map((note) => (
-          <NoteCard
-            key={note.id}
-            note={note}
-            userId={user.id}
-            onDelete={deleteNote}
-            onUpdate={updateNote}
-          />
-        ))}
-      </ul>
+      {filteredNotes.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No notes found.</p>
+      ) : (
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+          {filteredNotes.map((note) => (
+            <NoteCard
+              key={note.id}
+              note={note}
+              userId={user.id}
+              onDelete={deleteNote}
+              onUpdate={updateNote}
+            />
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
