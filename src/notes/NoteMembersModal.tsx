@@ -36,7 +36,12 @@ export function NoteMembersModal({
   const [newMemberEmail, setNewMemberEmail] = useState("");
 
   useEffect(() => {
-    if (open) setLocalMembers(members);
+    const setMembers = async () => {
+      setLocalMembers(members);
+    };
+    if (open) {
+      setMembers();
+    }
   }, [open, members]);
 
   const setMemberRole = (id: string, role: MemberRole) => {
@@ -73,7 +78,7 @@ export function NoteMembersModal({
 
         <div aria-describedby="note-members-desc">
           {localMembers.map((m) => (
-            <div key={m.userId} className="flex items-center justify-between gap-2">
+            <div key={m.userId} className="flex items-center justify-between gap-2 py-1">
               <span>{m.email}</span>
               <Select
                 value={m.role}

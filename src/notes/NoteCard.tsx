@@ -7,15 +7,13 @@ import { NoteMembersModal } from "./NoteMembersModal";
 import { NoteEditModal } from "./NoteEditModal";
 import { slateToPlainText } from "@/lib/utils";
 
-export default function NoteCard({ note, userId, onDelete, onRename }: NoteCardProps) {
+export default function NoteCard({ note, userId, onDelete, onUpdate }: NoteCardProps) {
   const role = getUserRole(note, userId);
-  if (!role) return null;
 
   const canEdit = role === "owner" || role === "editor";
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isMembersOpen, setIsMembersOpen] = useState(false);
-  const [members, setMembers] = useState(note.members || []);
 
   return (
     <>
@@ -71,13 +69,20 @@ export default function NoteCard({ note, userId, onDelete, onRename }: NoteCardP
         </div>
       </li>
 
-      <NoteEditModal open={isEditOpen} onOpenChange={setIsEditOpen} note={note} onSave={onRename} />
+      <NoteEditModal open={isEditOpen} onOpenChange={setIsEditOpen} note={note} onSave={onUpdate} />
 
       <NoteMembersModal
         open={isMembersOpen}
         onOpenChange={setIsMembersOpen}
-        members={members}
-        onUpdateMembers={setMembers}
+        members={note.members}
+        onUpdateMembers={(members) =>
+          onUpdate({
+            id: note.id,
+            patch: {
+              members,
+            },
+          })
+        }
       />
     </>
   );

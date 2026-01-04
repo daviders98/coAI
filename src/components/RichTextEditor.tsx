@@ -1,23 +1,33 @@
-import { Slate, Editable, withReact, useSlate } from "slate-react";
-import { createEditor, Editor, Transforms, Element as SlateElement } from "slate";
+import {
+  Slate,
+  Editable,
+  withReact,
+  useSlate,
+  type RenderLeafProps,
+  type RenderElementProps,
+} from "slate-react";
+import { createEditor, Editor, Transforms, Element as SlateElement, type Descendant } from "slate";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Bold, Italic, Underline, List, ListOrdered } from "lucide-react";
+import type { CustomElement, Mark } from "./RichTextEditorTypes";
+import type { NoteDescription } from "@/notes/NoteTypes";
 
-const EMPTY_VALUE = [
+const EMPTY_VALUE: NoteDescription[] = [
   {
     type: "paragraph",
     children: [{ text: "" }],
   },
 ];
 
-const isMarkActive = (editor: Editor, format: string) => {
+const isMarkActive = (editor: Editor, format: Mark): boolean => {
   const marks = Editor.marks(editor);
   return marks ? marks[format] === true : false;
 };
 
-const toggleMark = (editor: Editor, format: string) => {
+const toggleMark = (editor: Editor, format: Mark) => {
   const isActive = isMarkActive(editor, format);
+
   if (isActive) {
     Editor.removeMark(editor, format);
   } else {
@@ -33,7 +43,7 @@ const isBlockActive = (editor: Editor, format: string) => {
   return !!match;
 };
 
-const toggleBlock = (editor: Editor, format: string) => {
+const toggleBlock = (editor: Editor, format: CustomElement["type"]) => {
   const isActive = isBlockActive(editor, format);
   const isList = format === "bulleted-list" || format === "numbered-list";
 
@@ -43,16 +53,15 @@ const toggleBlock = (editor: Editor, format: string) => {
     split: true,
   });
 
-  let newType: string = "paragraph";
-  if (!isActive) {
-    newType = isList ? "list-item" : format;
-  }
+  const newType: CustomElement["type"] = !isActive ? (isList ? "list-item" : format) : "paragraph";
 
   Transforms.setNodes(editor, { type: newType });
 
   if (!isActive && isList) {
-    const block = { type: format, children: [] };
-    Transforms.wrapNodes(editor, block);
+    Transforms.wrapNodes(editor, {
+      type: format,
+      children: [],
+    });
   }
 };
 
@@ -121,14 +130,14 @@ function Toolbar() {
   );
 }
 
-const Leaf = ({ attributes, children, leaf }: any) => {
+const Leaf = ({ attributes, children, leaf }: RenderLeafProps) => {
   if (leaf.bold) children = <strong>{children}</strong>;
   if (leaf.italic) children = <em>{children}</em>;
   if (leaf.underline) children = <u>{children}</u>;
   return <span {...attributes}>{children}</span>;
 };
 
-const Element = ({ attributes, children, element }: any) => {
+const Element = ({ attributes, children, element }: RenderElementProps) => {
   switch (element.type) {
     case "bulleted-list":
       return (
@@ -153,19 +162,22 @@ export default function RichTextEditor({
   value,
   onChange,
 }: {
-  value?: any;
-  onChange: (value: any) => void;
+  value?: NoteDescription[];
+  onChange: (value: NoteDescription[]) => void;
 }) {
   const editor = useMemo(() => withReact(createEditor()), []);
-  const [editorValue, setEditorValue] = useState(value?.length ? value : EMPTY_VALUE);
+
+  const [editorValue, setEditorValue] = useState<NoteDescription[]>(
+    value && value.length ? value : EMPTY_VALUE,
+  );
 
   return (
     <Slate
       editor={editor}
-      initialValue={editorValue}
+      initialValue={editorValue as Descendant[]}
       onChange={(val) => {
-        setEditorValue(val);
-        onChange(val);
+        setEditorValue(val as NoteDescription[]);
+        onChange(val as NoteDescription[]);
       }}
     >
       <Toolbar />

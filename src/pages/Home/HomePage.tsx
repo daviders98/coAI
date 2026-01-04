@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 
 function HomePage() {
   const { user, logout } = useAuth();
-  const { notes, createNote, deleteNote, renameNote } = useNotes();
+  const { notes, createNote, deleteNote, updateNote } = useNotes();
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -43,7 +43,7 @@ function HomePage() {
             note={note}
             userId={user.id}
             onDelete={deleteNote}
-            onRename={renameNote}
+            onUpdate={updateNote}
           />
         ))}
       </ul>

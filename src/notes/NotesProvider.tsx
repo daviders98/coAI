@@ -30,34 +30,25 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     setNotes((prev) => [note, ...prev]);
   }
 
-  function deleteNote(id: string) {
-    setNotes((prev) => prev.filter((b) => b.id !== id));
-  }
-  function renameNote({
-    id,
-    title,
-    description,
-  }: {
-    id: string;
-    title: string;
-    description: string;
-  }) {
+  function updateNote({ id, patch }: { id: string; patch: Partial<Note> }) {
     setNotes((prev) =>
-      prev.map((b) =>
-        b.id === id
-          ? {
-              ...b,
-              title,
-              updatedAt: Date.now(),
-              description,
-            }
-          : b,
-      ),
+      prev.map((note) => (note.id === id ? { ...note, ...patch, updatedAt: Date.now() } : note)),
     );
   }
 
+  function deleteNote(id: string) {
+    setNotes((prev) => prev.filter((b) => b.id !== id));
+  }
+
   return (
-    <NotesContext.Provider value={{ notes, createNote, deleteNote, renameNote }}>
+    <NotesContext.Provider
+      value={{
+        notes,
+        createNote,
+        deleteNote,
+        updateNote,
+      }}
+    >
       {children}
     </NotesContext.Provider>
   );

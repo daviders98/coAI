@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import RichTextEditor from "@/components/RichTextEditor";
+import type { Note, NoteDescription } from "./NoteTypes";
+import { DialogDescription } from "@radix-ui/react-dialog";
 
-const EMPTY_EDITOR_VALUE = [
+const EMPTY_EDITOR_VALUE: NoteDescription[] = [
   {
     type: "paragraph",
     children: [{ text: "" }],
@@ -14,24 +16,24 @@ const EMPTY_EDITOR_VALUE = [
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  note: {
-    id: string;
-    title: string;
-    description?: string;
-  };
-  onSave: (data: { id: string; title: string; description: string }) => void;
+  note: Partial<Note>;
+  onSave: ({ id, patch }: { id: string; patch: Partial<Note> }) => void;
 };
 
 export function NoteEditModal({ open, onOpenChange, note, onSave }: Props) {
   const [title, setTitle] = useState(note.title);
-  const [description, setDescription] = useState<string>(note.description ?? EMPTY_EDITOR_VALUE);
+  const [description, setDescription] = useState(note.description ?? EMPTY_EDITOR_VALUE);
 
   function handleSave() {
-    onSave({
-      id: note.id,
-      title: title.trim(),
-      description,
-    });
+    if (note.id && title && description) {
+      onSave({
+        id: note.id,
+        patch: {
+          title: title.trim(),
+          description,
+        },
+      });
+    }
     onOpenChange(false);
   }
 
@@ -41,6 +43,7 @@ export function NoteEditModal({ open, onOpenChange, note, onSave }: Props) {
         <DialogHeader>
           <DialogTitle>Edit note</DialogTitle>
         </DialogHeader>
+        <DialogDescription id="note-edit-desc">Set title and description</DialogDescription>
 
         <div className="space-y-4">
           <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
@@ -53,4 +56,3 @@ export function NoteEditModal({ open, onOpenChange, note, onSave }: Props) {
     </Dialog>
   );
 }
-``;
