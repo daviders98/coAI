@@ -49,8 +49,8 @@ export function NoteEditModal({ open, onOpenChange, note, onSave }: Props) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[90dvh] w-[calc(100vw-1rem)] max-w-none overflow-hidden rounded-lg p-4 sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Edit note</DialogTitle>
-          <DialogDescription>Set title and description</DialogDescription>
+          <DialogTitle>Note</DialogTitle>
+          <DialogDescription>Enter title and description</DialogDescription>
         </DialogHeader>
 
         <div className="min-w-0 space-y-4">

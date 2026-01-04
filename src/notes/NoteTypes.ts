@@ -25,12 +25,14 @@ export type NoteCardProps = {
   note: Note;
   userId: string;
   onDelete: (id: string) => void;
-  onUpdate: ({ id, patch }: { id: string; patch: Partial<Note> }) => void;
+  onUpdate: (update: { id: string; patch: Partial<Note> }) => void;
+  isEditOpen: boolean;
+  onEditOpenChange?: (open: boolean) => void;
 };
 
 export type NotesContextValue = {
   notes: Note[];
-  createNote: ({ title, userId, email }: { title: string; userId: string; email: string }) => void;
+  createNote: ({ title, userId, email }: { title: string; userId: string; email: string }) => Note;
   deleteNote: (id: string) => void;
   updateNote: ({ id, patch }: { id: string; patch: Partial<Note> }) => void;
 };

@@ -28,6 +28,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     };
 
     setNotes((prev) => [note, ...prev]);
+    return note;
   }
 
   function updateNote({ id, patch }: { id: string; patch: Partial<Note> }) {

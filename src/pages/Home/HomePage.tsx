@@ -11,6 +11,7 @@ function HomePage() {
   const { user, logout } = useAuth();
   const { notes, createNote, deleteNote, updateNote } = useNotes();
   const [search, setSearch] = useState("");
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -24,6 +25,13 @@ function HomePage() {
     return text.toLowerCase().includes(search.toLowerCase());
   });
 
+  function handleCreateNote() {
+    if (user) {
+      const note = createNote({ title: "New note", userId: user.id, email: user.email });
+      setEditingNoteId(note.id);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -35,7 +43,7 @@ function HomePage() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <SearchBar value={search} onChange={setSearch} placeholder="Search notes..." />
           <button
-            onClick={() => createNote({ title: "New note", userId: user.id, email: user.email })}
+            onClick={handleCreateNote}
             className="hover:bg-primary/90 flex items-center justify-center rounded bg-primary p-2 text-sm text-background transition"
             aria-label="Add new note"
           >
@@ -59,6 +67,8 @@ function HomePage() {
               userId={user.id}
               onDelete={deleteNote}
               onUpdate={updateNote}
+              isEditOpen={editingNoteId === note.id}
+              onEditOpenChange={(open) => setEditingNoteId(open ? note.id : null)}
             />
           ))}
         </ul>

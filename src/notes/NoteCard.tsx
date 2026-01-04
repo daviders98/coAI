@@ -7,12 +7,17 @@ import { NoteMembersModal } from "./NoteMembersModal";
 import { NoteEditModal } from "./NoteEditModal";
 import { slateToPlainText } from "@/lib/utils";
 
-export default function NoteCard({ note, userId, onDelete, onUpdate }: NoteCardProps) {
+export default function NoteCard({
+  note,
+  userId,
+  onDelete,
+  onUpdate,
+  isEditOpen,
+  onEditOpenChange,
+}: NoteCardProps) {
   const role = getUserRole(note, userId);
-
   const canEdit = role === "owner" || role === "editor";
 
-  const [isEditOpen, setIsEditOpen] = useState(false);
   const [isMembersOpen, setIsMembersOpen] = useState(false);
 
   return (
@@ -27,12 +32,11 @@ export default function NoteCard({ note, userId, onDelete, onUpdate }: NoteCardP
                 className={`flex-1 truncate font-medium ${
                   canEdit ? "cursor-pointer sm:hover:underline" : ""
                 }`}
-                onClick={() => canEdit && setIsEditOpen(true)}
+                onClick={() => canEdit && onEditOpenChange?.(true)}
               >
                 {note.title}
               </h2>
 
-              {/* Actions */}
               <div className="flex gap-1 opacity-100 sm:opacity-0 sm:transition sm:group-hover:opacity-100">
                 <Button
                   variant="ghost"
@@ -57,8 +61,8 @@ export default function NoteCard({ note, userId, onDelete, onUpdate }: NoteCardP
             </div>
 
             <p
-              className="max-h-24 overflow-hidden break-words text-sm text-muted-foreground"
-              onClick={() => canEdit && setIsEditOpen(true)}
+              className="max-h-24 overflow-hidden break-words text-sm text-muted-foreground hover:cursor-pointer"
+              onClick={() => canEdit && onEditOpenChange?.(true)}
             >
               {note.description ? slateToPlainText(note.description) : "No description"}
             </p>
@@ -70,7 +74,12 @@ export default function NoteCard({ note, userId, onDelete, onUpdate }: NoteCardP
         </div>
       </li>
 
-      <NoteEditModal open={isEditOpen} onOpenChange={setIsEditOpen} note={note} onSave={onUpdate} />
+      <NoteEditModal
+        open={isEditOpen ?? false}
+        onOpenChange={onEditOpenChange ?? (() => {})}
+        note={note}
+        onSave={onUpdate}
+      />
 
       <NoteMembersModal
         open={isMembersOpen}
