@@ -181,9 +181,8 @@ export default function RichTextEditor({
       }}
     >
       <Toolbar />
-
       <Editable
-        className="min-h-[150px] rounded-md border p-3"
+        className="max-h-[300px] min-h-[150px] w-full min-w-0 max-w-full overflow-y-auto overflow-x-hidden whitespace-pre-wrap rounded-md border border-border p-3 [overflow-wrap:anywhere]"
         renderElement={(props) => <Element {...props} />}
         renderLeaf={(props) => <Leaf {...props} />}
       />

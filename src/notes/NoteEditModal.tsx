@@ -21,36 +21,49 @@ type Props = {
 };
 
 export function NoteEditModal({ open, onOpenChange, note, onSave }: Props) {
-  const [title, setTitle] = useState(note.title);
-  const [description, setDescription] = useState(note.description ?? EMPTY_EDITOR_VALUE);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState<NoteDescription[]>(EMPTY_EDITOR_VALUE);
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (nextOpen) {
+      setTitle(note.title ?? "");
+      setDescription(note.description ?? EMPTY_EDITOR_VALUE);
+    }
+    onOpenChange(nextOpen);
+  }
 
   function handleSave() {
-    if (note.id && title && description) {
-      onSave({
-        id: note.id,
-        patch: {
-          title: title.trim(),
-          description,
-        },
-      });
-    }
+    if (!note.id) return;
+
+    onSave({
+      id: note.id,
+      patch: {
+        title: title.trim(),
+        description,
+      },
+    });
+
     onOpenChange(false);
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-h-[90dvh] w-[calc(100vw-1rem)] max-w-none overflow-hidden rounded-lg p-4 sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Edit note</DialogTitle>
+          <DialogDescription>Set title and description</DialogDescription>
         </DialogHeader>
-        <DialogDescription id="note-edit-desc">Set title and description</DialogDescription>
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
 
-          <RichTextEditor key={note.id} value={description} onChange={setDescription} />
+          <div className="min-w-0">
+            <RichTextEditor value={description} onChange={setDescription} />
+          </div>
 
-          <Button onClick={handleSave}>Save</Button>
+          <Button className="w-full sm:w-auto" onClick={handleSave}>
+            Save
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

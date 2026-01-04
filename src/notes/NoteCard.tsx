@@ -20,17 +20,18 @@ export default function NoteCard({ note, userId, onDelete, onUpdate }: NoteCardP
       <li className="group relative rounded-lg border p-4 transition hover:shadow-sm">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1 space-y-1">
-            <div className="flex w-full justify-between">
+            <div className="flex w-full items-start justify-between">
               <h2
                 className={`flex-1 truncate font-medium ${
-                  canEdit ? "cursor-pointer hover:underline" : ""
+                  canEdit ? "cursor-pointer sm:hover:underline" : ""
                 }`}
                 onClick={() => canEdit && setIsEditOpen(true)}
               >
                 {note.title}
               </h2>
 
-              <div className="flex gap-1 opacity-0 transition group-hover:opacity-100">
+              {/* Actions */}
+              <div className="flex gap-1 opacity-100 sm:opacity-0 sm:transition sm:group-hover:opacity-100">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -55,7 +56,7 @@ export default function NoteCard({ note, userId, onDelete, onUpdate }: NoteCardP
 
             <p
               className={`truncate text-sm text-muted-foreground ${
-                canEdit ? "cursor-pointer hover:underline" : ""
+                canEdit ? "cursor-pointer sm:hover:underline" : ""
               }`}
               onClick={() => canEdit && setIsEditOpen(true)}
             >
@@ -78,9 +79,7 @@ export default function NoteCard({ note, userId, onDelete, onUpdate }: NoteCardP
         onUpdateMembers={(members) =>
           onUpdate({
             id: note.id,
-            patch: {
-              members,
-            },
+            patch: { members },
           })
         }
       />
