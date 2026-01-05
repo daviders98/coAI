@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import useAuth from "@/auth/useAuth";
 import { useNotes } from "@/notes/useNotes";
 import logo from "@/assets/logo.webp";
@@ -19,13 +19,21 @@ function HomePage() {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const [visibleCount, setVisibleCount] = useState(NOTESOFFSET);
 
-  const filteredNotes = notes.filter((note) => {
-    const text =
-      note.title +
-      " " +
-      (note.description?.map((p) => p.children.map((c) => c.text).join("")).join("\n") ?? "");
-    return text.toLowerCase().includes(search.toLowerCase());
-  });
+  const filteredNotes = useMemo(() => {
+    if (!user) return [];
+
+    return notes.filter((note) => {
+      const isMember = note.members.some((m) => m.userId === user.id);
+      if (!isMember) return false;
+
+      const text =
+        note.title +
+        " " +
+        (note.description?.map((p) => p.children.map((c) => c.text).join("")).join("\n") ?? "");
+
+      return text.toLowerCase().includes(search.toLowerCase());
+    });
+  }, [notes, search, user]);
 
   function handleCreateNote() {
     if (user) {

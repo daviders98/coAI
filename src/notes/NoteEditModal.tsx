@@ -40,6 +40,7 @@ export function NoteEditModal({
       setConflictDetected(false);
     };
     asyncUpdates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, note.id]);
 
   useEffect(() => {
