@@ -3,11 +3,12 @@ import {
   Editable,
   withReact,
   useSlate,
+  ReactEditor,
   type RenderLeafProps,
   type RenderElementProps,
 } from "slate-react";
 import { createEditor, Editor, Transforms, Element as SlateElement, type Descendant } from "slate";
-import { useMemo, useState } from "react";
+import { useMemo, useState, forwardRef, useImperativeHandle } from "react";
 import { Button } from "@/components/ui/button";
 import { Bold, Italic, Underline, List, ListOrdered } from "lucide-react";
 import type { CustomElement, Mark } from "./RichTextEditorTypes";
@@ -20,7 +21,7 @@ const EMPTY_VALUE: NoteDescription[] = [
   },
 ];
 
-const isMarkActive = (editor: Editor, format: Mark): boolean => {
+const isMarkActive = (editor: Editor, format: Mark) => {
   const marks = Editor.marks(editor);
   return marks ? marks[format] === true : false;
 };
@@ -39,7 +40,6 @@ const isBlockActive = (editor: Editor, format: string) => {
   const [match] = Editor.nodes(editor, {
     match: (n) => !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === format,
   });
-
   return !!match;
 };
 
@@ -53,9 +53,9 @@ const toggleBlock = (editor: Editor, format: CustomElement["type"]) => {
     split: true,
   });
 
-  const newType: CustomElement["type"] = !isActive ? (isList ? "list-item" : format) : "paragraph";
-
-  Transforms.setNodes(editor, { type: newType });
+  Transforms.setNodes(editor, {
+    type: !isActive ? (isList ? "list-item" : format) : "paragraph",
+  });
 
   if (!isActive && isList) {
     Transforms.wrapNodes(editor, {
@@ -69,7 +69,7 @@ function Toolbar() {
   const editor = useSlate();
 
   return (
-    <div className="flex gap-1 rounded-md border p-1">
+    <div className="bg-muted/40 flex gap-1 border-b border-border p-1">
       <Button
         size="icon"
         variant={isMarkActive(editor, "bold") ? "default" : "ghost"}
@@ -141,13 +141,13 @@ const Element = ({ attributes, children, element }: RenderElementProps) => {
   switch (element.type) {
     case "bulleted-list":
       return (
-        <ul {...attributes} className="list-disc pl-6">
+        <ul className="list-disc pl-6" {...attributes}>
           {children}
         </ul>
       );
     case "numbered-list":
       return (
-        <ol {...attributes} className="list-decimal pl-6">
+        <ol className="list-decimal pl-6" {...attributes}>
           {children}
         </ol>
       );
@@ -158,18 +158,26 @@ const Element = ({ attributes, children, element }: RenderElementProps) => {
   }
 };
 
-export default function RichTextEditor({
-  value,
-  onChange,
-}: {
-  value?: NoteDescription[];
-  onChange: (value: NoteDescription[]) => void;
-}) {
+const RichTextEditor = forwardRef<
+  { focus: () => void },
+  {
+    value?: NoteDescription[];
+    onChange: (value: NoteDescription[]) => void;
+  }
+>(function RichTextEditor({ value, onChange }, ref) {
   const editor = useMemo(() => withReact(createEditor()), []);
 
   const [editorValue, setEditorValue] = useState<NoteDescription[]>(
     value && value.length ? value : EMPTY_VALUE,
   );
+
+  useImperativeHandle(ref, () => ({
+    focus() {
+      ReactEditor.focus(editor);
+      const end = Editor.end(editor, []);
+      Transforms.select(editor, end);
+    },
+  }));
 
   return (
     <Slate
@@ -180,12 +188,17 @@ export default function RichTextEditor({
         onChange(val as NoteDescription[]);
       }}
     >
-      <Toolbar />
-      <Editable
-        className="max-h-[300px] min-h-[150px] w-full min-w-0 max-w-full overflow-y-auto overflow-x-hidden whitespace-pre-wrap rounded-md border border-border p-3 [overflow-wrap:anywhere]"
-        renderElement={(props) => <Element {...props} />}
-        renderLeaf={(props) => <Leaf {...props} />}
-      />
+      <div className="overflow-hidden rounded-md border border-input bg-background transition focus-within:border-ring focus-within:ring-1 focus-within:ring-ring focus-within:ring-offset-1">
+        <Toolbar />
+
+        <Editable
+          className="max-h-[300px] min-h-[150px] w-full overflow-y-auto bg-background p-3 text-sm outline-none [overflow-wrap:anywhere]"
+          renderElement={Element}
+          renderLeaf={Leaf}
+        />
+      </div>
     </Slate>
   );
-}
+});
+
+export default RichTextEditor;

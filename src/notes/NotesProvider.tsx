@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Note } from "./NoteTypes";
 import { NotesContext } from "./NotesContext";
-const STORAGE_KEY = "coai_notes";
+import { STORAGE_KEY } from "./NoteConstants";
 
 export function NotesProvider({ children }: { children: React.ReactNode }) {
   const [notes, setNotes] = useState<Note[]>(() => {
@@ -22,7 +22,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
       description: [
         {
           type: "paragraph",
-          children: [{ text: "Enter a description" }],
+          children: [{ text: "" }],
         },
       ],
     };

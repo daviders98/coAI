@@ -16,15 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { NoteMember, MemberRole } from "./NoteTypes";
+import type { NoteMember, MemberRole, NoteMembersModalProps } from "./NoteTypes";
 import { Plus } from "lucide-react";
-
-interface NoteMembersModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  members: NoteMember[];
-  onUpdateMembers: (members: NoteMember[]) => void;
-}
 
 export function NoteMembersModal({
   open,

@@ -27,7 +27,7 @@ export type NoteCardProps = {
   onDelete: (id: string) => void;
   onUpdate: (update: { id: string; patch: Partial<Note> }) => void;
   isEditOpen: boolean;
-  onEditOpenChange?: (open: boolean) => void;
+  onEditOpenChange?: (open: boolean, ModalFocusField: FocusField) => void;
 };
 
 export type NotesContextValue = {
@@ -36,3 +36,20 @@ export type NotesContextValue = {
   deleteNote: (id: string) => void;
   updateNote: ({ id, patch }: { id: string; patch: Partial<Note> }) => void;
 };
+
+export type FocusField = "title" | "description";
+
+export interface NoteEditModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  note: Partial<Note>;
+  onSave: ({ id, patch }: { id: string; patch: Partial<Note> }) => void;
+  focusField?: FocusField;
+}
+
+export interface NoteMembersModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  members: NoteMember[];
+  onUpdateMembers: (members: NoteMember[]) => void;
+}

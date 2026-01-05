@@ -6,13 +6,14 @@ import logo from "@/assets/logo.webp";
 import NoteCard from "@/notes/NoteCard";
 import { Plus } from "lucide-react";
 import SearchBar from "@/components/SearchBar";
+import type { FocusField } from "@/notes/NoteTypes";
 
 function HomePage() {
   const { user, logout } = useAuth();
   const { notes, createNote, deleteNote, updateNote } = useNotes();
   const [search, setSearch] = useState("");
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-
+  const [, setFocusField] = useState<FocusField>();
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -27,7 +28,7 @@ function HomePage() {
 
   function handleCreateNote() {
     if (user) {
-      const note = createNote({ title: "New note", userId: user.id, email: user.email });
+      const note = createNote({ title: "", userId: user.id, email: user.email });
       setEditingNoteId(note.id);
     }
   }
@@ -68,7 +69,10 @@ function HomePage() {
               onDelete={deleteNote}
               onUpdate={updateNote}
               isEditOpen={editingNoteId === note.id}
-              onEditOpenChange={(open) => setEditingNoteId(open ? note.id : null)}
+              onEditOpenChange={(open, focus) => {
+                setEditingNoteId(open ? note.id : null);
+                setFocusField(focus);
+              }}
             />
           ))}
         </ul>

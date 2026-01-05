@@ -1,28 +1,26 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import RichTextEditor from "@/components/RichTextEditor";
-import type { Note, NoteDescription } from "./NoteTypes";
+import type { NoteDescription, NoteEditModalProps } from "./NoteTypes";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import { EMPTY_EDITOR_VALUE, ModalFocusField } from "./NoteConstants";
 
-const EMPTY_EDITOR_VALUE: NoteDescription[] = [
-  {
-    type: "paragraph",
-    children: [{ text: "" }],
-  },
-];
+export function NoteEditModal({
+  open,
+  onOpenChange,
+  note,
+  onSave,
+  focusField,
+}: NoteEditModalProps) {
+  const [title, setTitle] = useState(note.title ?? "");
+  const [description, setDescription] = useState<NoteDescription[]>(
+    note.description ?? EMPTY_EDITOR_VALUE,
+  );
 
-type Props = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  note: Partial<Note>;
-  onSave: ({ id, patch }: { id: string; patch: Partial<Note> }) => void;
-};
-
-export function NoteEditModal({ open, onOpenChange, note, onSave }: Props) {
-  const [title, setTitle] = useState(note.title);
-  const [description, setDescription] = useState<NoteDescription[]>(note.description || []);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const editorRef = useRef<{ focus: () => void }>(null);
 
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
@@ -33,36 +31,58 @@ export function NoteEditModal({ open, onOpenChange, note, onSave }: Props) {
   }
 
   function handleSave() {
-    if (note.id && title)
-      onSave({
-        id: note.id,
-        patch: {
-          title: title.trim(),
-          description,
-        },
-      });
+    if (!note.id) return;
+
+    onSave({
+      id: note.id,
+      patch: {
+        title: title.trim(),
+        description,
+      },
+    });
 
     onOpenChange(false);
   }
 
+  useEffect(() => {
+    if (!open) return;
+
+    requestAnimationFrame(() => {
+      if (focusField === ModalFocusField.DESCRIPTION) {
+        editorRef.current?.focus();
+      } else {
+        const input = titleRef.current;
+        if (!input) return;
+
+        input.focus();
+        const len = input.value.length;
+        input.setSelectionRange(len, len);
+      }
+    });
+  }, [open, focusField]);
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[90dvh] w-[calc(100vw-1rem)] max-w-none overflow-hidden rounded-lg p-4 sm:max-w-xl">
+      <DialogContent
+        className="max-h-[90dvh] w-full max-w-xl overflow-hidden rounded-lg p-4"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Note</DialogTitle>
           <DialogDescription>Enter title and description</DialogDescription>
         </DialogHeader>
 
-        <div className="min-w-0 space-y-4">
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
+        <div className="space-y-4">
+          <Input
+            ref={titleRef}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Title"
+          />
 
-          <div className="min-w-0">
-            <RichTextEditor value={description} onChange={setDescription} />
-          </div>
+          <RichTextEditor ref={editorRef} value={description} onChange={setDescription} />
 
-          <Button className="w-full sm:w-auto" onClick={handleSave}>
-            Save
-          </Button>
+          <Button onClick={handleSave}>Save</Button>
         </div>
       </DialogContent>
     </Dialog>
