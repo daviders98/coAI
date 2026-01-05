@@ -1,5 +1,5 @@
 {
-  "name": "coAI",
+  "name": "coai",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -16,6 +16,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "diff": "^8.0.2",
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

@@ -13,18 +13,50 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
   }, [notes]);
 
+  useEffect(() => {
+    function handleStorage(e: StorageEvent) {
+      if (e.key !== STORAGE_KEY) return;
+      if (!e.newValue) return;
+
+      try {
+        const incoming = JSON.parse(e.newValue) as Note[];
+        setNotes(incoming);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
   function createNote({ title, userId, email }: { title: string; userId: string; email: string }) {
+    const now = Date.now();
+
     const note: Note = {
       id: crypto.randomUUID(),
       title,
-      updatedAt: Date.now(),
-      members: [{ userId, role: "owner", email }],
       description: [
         {
           type: "paragraph",
           children: [{ text: "" }],
         },
       ],
+      updatedAt: now,
+      version: 1,
+      versions: [
+        {
+          version: 1,
+          title,
+          description: [
+            {
+              type: "paragraph",
+              children: [{ text: "" }],
+            },
+          ],
+          updatedAt: now,
+        },
+      ],
+      members: [{ userId, role: "owner", email }],
     };
 
     setNotes((prev) => [note, ...prev]);
@@ -33,12 +65,33 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
 
   function updateNote({ id, patch }: { id: string; patch: Partial<Note> }) {
     setNotes((prev) =>
-      prev.map((note) => (note.id === id ? { ...note, ...patch, updatedAt: Date.now() } : note)),
+      prev.map((note) => {
+        if (note.id !== id) return note;
+
+        const now = Date.now();
+        const currentVersion = patch.version ?? note.version;
+        const nextVersion = currentVersion + 1;
+
+        return {
+          ...note,
+          ...patch,
+          updatedAt: now,
+          version: nextVersion,
+          versions: [
+            ...note.versions,
+            {
+              version: nextVersion,
+              title: patch.title ?? note.title,
+              description: patch.description ?? note.description,
+              updatedAt: now,
+            },
+          ],
+        };
+      }),
     );
   }
-
   function deleteNote(id: string) {
-    setNotes((prev) => prev.filter((b) => b.id !== id));
+    setNotes((prev) => prev.filter((note) => note.id !== id));
   }
 
   return (
@@ -46,8 +99,8 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
       value={{
         notes,
         createNote,
-        deleteNote,
         updateNote,
+        deleteNote,
       }}
     >
       {children}

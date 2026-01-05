@@ -58,16 +58,12 @@ const toggleBlock = (editor: Editor, format: CustomElement["type"]) => {
   });
 
   if (!isActive && isList) {
-    Transforms.wrapNodes(editor, {
-      type: format,
-      children: [],
-    });
+    Transforms.wrapNodes(editor, { type: format, children: [] });
   }
 };
 
 function Toolbar() {
   const editor = useSlate();
-
   return (
     <div className="bg-muted/40 flex gap-1 border-b border-border p-1">
       <Button
@@ -159,18 +155,17 @@ const Element = ({ attributes, children, element }: RenderElementProps) => {
 };
 
 const RichTextEditor = forwardRef<
-  { focus: () => void },
-  {
-    value?: NoteDescription[];
-    onChange: (value: NoteDescription[]) => void;
-  }
+  { focus: () => void }, // Exposed methods
+  { value?: NoteDescription[]; onChange: (value: NoteDescription[]) => void }
 >(function RichTextEditor({ value, onChange }, ref) {
+  // withReact wraps the editor to make it React-compatible
   const editor = useMemo(() => withReact(createEditor()), []);
 
   const [editorValue, setEditorValue] = useState<NoteDescription[]>(
     value && value.length ? value : EMPTY_VALUE,
   );
 
+  // Expose focus method to parent via ref
   useImperativeHandle(ref, () => ({
     focus() {
       ReactEditor.focus(editor);
@@ -190,7 +185,6 @@ const RichTextEditor = forwardRef<
     >
       <div className="overflow-hidden rounded-md border border-input bg-background transition focus-within:border-ring focus-within:ring-1 focus-within:ring-ring focus-within:ring-offset-1">
         <Toolbar />
-
         <Editable
           className="max-h-[300px] min-h-[150px] w-full overflow-y-auto bg-background p-3 text-sm outline-none [overflow-wrap:anywhere]"
           renderElement={Element}

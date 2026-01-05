@@ -1,11 +1,14 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import RichTextEditor from "@/components/RichTextEditor";
 import type { NoteDescription, NoteEditModalProps } from "./NoteTypes";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { EMPTY_EDITOR_VALUE, ModalFocusField } from "./NoteConstants";
+import { slateToPlainText } from "@/lib/utils";
+import DiffViewer from "@/components/DiffViewer";
+import { TriangleAlert } from "lucide-react";
 
 export function NoteEditModal({
   open,
@@ -19,30 +22,25 @@ export function NoteEditModal({
     note.description ?? EMPTY_EDITOR_VALUE,
   );
 
+  const [baseVersion, setBaseVersion] = useState<number | null>(null);
+  const [, setHasLocalChanges] = useState(false);
+  const [conflictDetected, setConflictDetected] = useState(false);
+
   const titleRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<{ focus: () => void }>(null);
 
-  function handleOpenChange(nextOpen: boolean) {
-    if (nextOpen) {
+  useEffect(() => {
+    if (!open) return;
+    const asyncUpdates = async () => {
       setTitle(note.title ?? "");
       setDescription(note.description ?? EMPTY_EDITOR_VALUE);
-    }
-    onOpenChange(nextOpen);
-  }
+      setBaseVersion(note.version ?? 1);
 
-  function handleSave() {
-    if (!note.id) return;
-
-    onSave({
-      id: note.id,
-      patch: {
-        title: title.trim(),
-        description,
-      },
-    });
-
-    onOpenChange(false);
-  }
+      setHasLocalChanges(false);
+      setConflictDetected(false);
+    };
+    asyncUpdates();
+  }, [open, note.id]);
 
   useEffect(() => {
     if (!open) return;
@@ -61,8 +59,57 @@ export function NoteEditModal({
     });
   }, [open, focusField]);
 
+  function handleSave() {
+    if (!note.id) return;
+
+    if (baseVersion != null && note.version !== baseVersion) {
+      setConflictDetected(true);
+      return;
+    }
+
+    onSave({
+      id: note.id,
+      patch: {
+        title: title.trim(),
+        description,
+      },
+    });
+
+    onOpenChange(false);
+  }
+
+  const handleAcceptIncoming = () => {
+    setTitle(note.title ?? "");
+    setDescription(note.description ?? EMPTY_EDITOR_VALUE);
+    setConflictDetected(false);
+    setHasLocalChanges(false);
+    setBaseVersion(note.version ?? 1);
+  };
+
+  const handleAcceptCurrent = () => {
+    setConflictDetected(false);
+    setHasLocalChanges(true);
+    setBaseVersion(note.version ?? 1);
+  };
+
+  const handleAcceptBoth = () => {
+    const mergedTitle = `${title} / ${note.title ?? ""}`;
+    const mergedDescription = [
+      ...description,
+      {
+        type: "paragraph",
+        children: [{ text: slateToPlainText(note.description ?? EMPTY_EDITOR_VALUE) }],
+      },
+    ];
+    setTitle(mergedTitle);
+    setDescription(mergedDescription);
+    setConflictDetected(false);
+    setHasLocalChanges(true);
+    setBaseVersion(note.version ?? 1);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="max-h-[90dvh] w-full max-w-xl overflow-hidden rounded-lg p-4"
         onOpenAutoFocus={(e) => e.preventDefault()}
@@ -76,13 +123,40 @@ export function NoteEditModal({
           <Input
             ref={titleRef}
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              setHasLocalChanges(true);
+            }}
             placeholder="Title"
           />
 
-          <RichTextEditor ref={editorRef} value={description} onChange={setDescription} />
+          <RichTextEditor
+            ref={editorRef}
+            value={description}
+            onChange={(v) => {
+              setDescription(v);
+              setHasLocalChanges(true);
+            }}
+          />
+          {conflictDetected && (
+            <Fragment>
+              <p className="flex flex-row items-center gap-2 text-sm text-destructive">
+                <TriangleAlert />
+                This note was updated elsewhere. Resolve conflicts to continue.
+              </p>
+              <DiffViewer
+                incoming={`${note.title ?? ""}\n${slateToPlainText(note.description ?? EMPTY_EDITOR_VALUE)}`}
+                current={`${title}\n${slateToPlainText(description)}`}
+                onAcceptIncoming={handleAcceptIncoming}
+                onAcceptCurrent={handleAcceptCurrent}
+                onAcceptBoth={handleAcceptBoth}
+              />
+            </Fragment>
+          )}
 
-          <Button onClick={handleSave}>Save</Button>
+          <Button onClick={handleSave} disabled={conflictDetected}>
+            {conflictDetected ? "Resolve conflicts to save" : "Save"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

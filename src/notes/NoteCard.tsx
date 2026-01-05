@@ -55,10 +55,11 @@ export default function NoteCard({
 
                 {canDeleteNote(role) && (
                   <Button
-                    variant="ghost"
+                    variant="destructive"
                     size="icon"
                     onClick={() => onDelete(note.id)}
                     aria-label="Delete note"
+                    className="bg-transparent hover:bg-destructive"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

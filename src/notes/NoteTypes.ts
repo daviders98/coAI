@@ -13,12 +13,22 @@ export type NoteDescription = {
   type: string;
   children: DescriptionChildren[];
 };
+
+export type NoteVersion = {
+  version: number;
+  title: string;
+  description: NoteDescription[];
+  updatedAt: number;
+};
+
 export type Note = {
   id: string;
   title: string;
+  description: NoteDescription[];
   updatedAt: number;
   members: NoteMember[];
-  description: NoteDescription[];
+  version: number;
+  versions: NoteVersion[];
 };
 
 export type NoteCardProps = {
