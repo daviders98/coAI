@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import useAuth from "@/auth/useAuth";
 import { useNotes } from "@/notes/useNotes";
 import logo from "@/assets/logo.webp";
@@ -7,6 +7,7 @@ import NoteCard from "@/notes/NoteCard";
 import { Plus } from "lucide-react";
 import SearchBar from "@/components/SearchBar";
 import type { FocusField } from "@/notes/NoteTypes";
+import { NOTESOFFSET } from "@/notes/NoteConstants";
 
 function HomePage() {
   const { user, logout } = useAuth();
@@ -14,9 +15,9 @@ function HomePage() {
   const [search, setSearch] = useState("");
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [, setFocusField] = useState<FocusField>();
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const [visibleCount, setVisibleCount] = useState(NOTESOFFSET);
 
   const filteredNotes = notes.filter((note) => {
     const text =
@@ -33,6 +34,28 @@ function HomePage() {
     }
   }
 
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + NOTESOFFSET, filteredNotes.length));
+        }
+      },
+      {
+        root: null,
+        rootMargin: "100px",
+        threshold: 0.1,
+      },
+    );
+
+    observer.observe(sentinelRef.current);
+
+    return () => observer.disconnect();
+  }, [filteredNotes.length]);
+
+  if (!user) return <Navigate to="/login" replace />;
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -61,7 +84,7 @@ function HomePage() {
         <p className="text-sm text-muted-foreground">No notes found.</p>
       ) : (
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-          {filteredNotes.map((note) => (
+          {filteredNotes.slice(0, visibleCount).map((note) => (
             <NoteCard
               key={note.id}
               note={note}
@@ -77,6 +100,8 @@ function HomePage() {
           ))}
         </ul>
       )}
+
+      {<div ref={sentinelRef} />}
     </div>
   );
 }

@@ -10,3 +10,5 @@ export const EMPTY_EDITOR_VALUE: NoteDescription[] = [
 ];
 
 export const STORAGE_KEY = "coai_notes";
+
+export const NOTESOFFSET = 20;
