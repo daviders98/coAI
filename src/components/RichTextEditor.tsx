@@ -8,7 +8,7 @@ import {
   type RenderElementProps,
 } from "slate-react";
 import { createEditor, Editor, Transforms, Element as SlateElement, type Descendant } from "slate";
-import { useMemo, useState, forwardRef, useImperativeHandle } from "react";
+import { useMemo, useState, forwardRef, useImperativeHandle, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Bold, Italic, Underline, List, ListOrdered } from "lucide-react";
 import type { CustomElement, Mark } from "./RichTextEditorTypes";
@@ -159,11 +159,26 @@ const RichTextEditor = forwardRef<
   { value?: NoteDescription[]; onChange: (value: NoteDescription[]) => void }
 >(function RichTextEditor({ value, onChange }, ref) {
   // withReact wraps the editor to make it React-compatible
-  const editor = useMemo(() => withReact(createEditor()), []);
 
   const [editorValue, setEditorValue] = useState<NoteDescription[]>(
     value && value.length ? value : EMPTY_VALUE,
   );
+  const editor = useMemo(() => withReact(createEditor()), []);
+
+  useEffect(() => {
+    // Check if the external value is different from the editor's current internal state (USED WHEN SOLVING CONFLICTS)
+    // Deep comparison using json.stringify
+    if (value && JSON.stringify(value) !== JSON.stringify(editor.children)) {
+      Transforms.delete(editor, {
+        at: {
+          anchor: Editor.start(editor, []),
+          focus: Editor.end(editor, []),
+        },
+      });
+
+      Transforms.insertNodes(editor, value as Descendant[], { at: [0] });
+    }
+  }, [value, editor]);
 
   // Expose focus method to parent via ref
   useImperativeHandle(ref, () => ({

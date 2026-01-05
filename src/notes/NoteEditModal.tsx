@@ -80,9 +80,10 @@ export function NoteEditModal({
 
   const handleAcceptIncoming = () => {
     setTitle(note.title ?? "");
-    setDescription(note.description ?? EMPTY_EDITOR_VALUE);
+    const finalDescription = note.description ?? EMPTY_EDITOR_VALUE;
+    setDescription(finalDescription as NoteDescription[]);
+
     setConflictDetected(false);
-    setHasLocalChanges(false);
     setBaseVersion(note.version ?? 1);
   };
 
@@ -94,20 +95,17 @@ export function NoteEditModal({
 
   const handleAcceptBoth = () => {
     const mergedTitle = `${title} / ${note.title ?? ""}`;
-    const mergedDescription = [
-      ...description,
-      {
-        type: "paragraph",
-        children: [{ text: slateToPlainText(note.description ?? EMPTY_EDITOR_VALUE) }],
-      },
-    ];
+    const currentDesc = description;
+    const incomingDesc = note.description ?? EMPTY_EDITOR_VALUE;
+
+    const mergedDescription = [...currentDesc, ...incomingDesc];
+
     setTitle(mergedTitle);
-    setDescription(mergedDescription);
+    setDescription(mergedDescription as NoteDescription[]);
+
     setConflictDetected(false);
-    setHasLocalChanges(true);
     setBaseVersion(note.version ?? 1);
   };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
