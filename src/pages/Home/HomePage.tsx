@@ -23,9 +23,6 @@ function HomePage() {
     if (!user) return [];
 
     return notes.filter((note) => {
-      const isMember = note.members.some((m) => m.userId === user.id);
-      if (!isMember) return false;
-
       const text =
         note.title +
         " " +
