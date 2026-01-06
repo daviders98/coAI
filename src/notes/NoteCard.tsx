@@ -70,7 +70,7 @@ export default function NoteCard({
           </div>
 
           <p
-            className={`max-h-24 break-words text-sm text-muted-foreground ${
+            className={`line-clamp-3 break-words text-sm text-muted-foreground ${
               canEdit ? "cursor-pointer sm:hover:underline" : "cursor-not-allowed opacity-70"
             }`}
             onClick={() => {
