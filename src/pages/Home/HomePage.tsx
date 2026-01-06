@@ -44,6 +44,8 @@ function HomePage() {
 
   function handleCreateNote() {
     if (user) {
+      setSearch("");
+
       const note = createNote({ title: "", userId: user.id, email: user.email });
       setEditingNoteId(note.id);
     }

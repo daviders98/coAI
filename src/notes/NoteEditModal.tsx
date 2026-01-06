@@ -41,7 +41,7 @@ export function NoteEditModal({
     setHasLocalChanges(false);
     setConflictDetected(false);
     setAiSuggestion(null);
-  }, [open, note.id, note.title, note.description, note.version]);
+  }, [open, note.id]);
 
   useEffect(() => {
     if (!open) return;
