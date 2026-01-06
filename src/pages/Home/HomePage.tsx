@@ -7,7 +7,7 @@ import NoteCard from "@/notes/NoteCard";
 import { Plus } from "lucide-react";
 import SearchBar from "@/components/SearchBar";
 import type { FocusField } from "@/notes/NoteTypes";
-import { NOTESOFFSET } from "@/notes/NoteConstants";
+import { NOTES_OFFSET } from "@/notes/NoteConstants";
 import { warmupRewordEngine } from "@/ai/rewordEngine";
 
 function HomePage() {
@@ -18,7 +18,7 @@ function HomePage() {
   const [, setFocusField] = useState<FocusField>();
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const [visibleCount, setVisibleCount] = useState(NOTESOFFSET);
+  const [visibleCount, setVisibleCount] = useState(NOTES_OFFSET);
 
   const filteredNotes = useMemo(() => {
     if (!user) return [];
@@ -34,7 +34,7 @@ function HomePage() {
   }, [notes, search, user]);
   useEffect(() => {
     if (!user) return;
-    (() => setVisibleCount(NOTESOFFSET))();
+    (() => setVisibleCount(NOTES_OFFSET))();
   }, [user, notes.length]);
   useEffect(() => {
     warmupRewordEngine().catch((e) => {
@@ -55,7 +55,7 @@ function HomePage() {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          setVisibleCount((prev) => Math.min(prev + NOTESOFFSET, filteredNotes.length));
+          setVisibleCount((prev: number) => Math.min(prev + NOTES_OFFSET, filteredNotes.length));
         }
       },
       {
