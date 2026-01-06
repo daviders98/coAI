@@ -69,7 +69,7 @@ export default function NoteCard({
           </div>
 
           <p
-            className="max-h-24 overflow-hidden break-words text-sm text-muted-foreground hover:cursor-pointer hover:underline"
+            className="max-h-24 break-words text-sm text-muted-foreground hover:cursor-pointer hover:underline"
             onClick={() => {
               if (!canEdit) return;
               setFocusField(ModalFocusField.DESCRIPTION as FocusField);
