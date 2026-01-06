@@ -33,6 +33,10 @@ function HomePage() {
     });
   }, [notes, search, user]);
   useEffect(() => {
+    if (!user) return;
+    (() => setVisibleCount(NOTESOFFSET))();
+  }, [user, notes.length]);
+  useEffect(() => {
     warmupRewordEngine().catch((e) => {
       console.warn("Local AI warmup failed", e);
     });
