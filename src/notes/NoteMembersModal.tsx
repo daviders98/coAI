@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/select";
 import type { NoteMember, MemberRole, NoteMembersModalProps } from "./NoteTypes";
 import { Plus } from "lucide-react";
-
 export function NoteMembersModal({
   open,
   onOpenChange,
@@ -27,13 +26,11 @@ export function NoteMembersModal({
 }: NoteMembersModalProps) {
   const [localMembers, setLocalMembers] = useState<NoteMember[]>(members);
   const [newMemberEmail, setNewMemberEmail] = useState("");
+  const [newMemberRole, setNewMemberRole] = useState<MemberRole>("viewer");
 
   useEffect(() => {
-    const setMembers = async () => {
-      setLocalMembers(members);
-    };
     if (open) {
-      setMembers();
+      (() => setLocalMembers(members))();
     }
   }, [open, members]);
 
@@ -41,17 +38,18 @@ export function NoteMembersModal({
     setLocalMembers((prev) => prev.map((m) => (m.userId === id ? { ...m, role } : m)));
   };
 
-  const addMember = (role: MemberRole = "viewer") => {
+  const addMember = () => {
     const email = newMemberEmail.trim();
     if (!email || !/\S+@\S+\.\S+/.test(email)) return;
 
     const newMember: NoteMember = {
       userId: Date.now().toString(),
-      role,
+      role: newMemberRole,
       email,
     };
     setLocalMembers((prev) => [...prev, newMember]);
     setNewMemberEmail("");
+    setNewMemberRole("viewer");
   };
 
   const saveChanges = () => {
@@ -69,7 +67,7 @@ export function NoteMembersModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div aria-describedby="note-members-desc">
+        <div aria-describedby="note-members-desc" className="space-y-2">
           {localMembers.map((m) => (
             <div key={m.userId} className="flex items-center justify-between gap-2 py-1">
               <span>{m.email}</span>
@@ -97,7 +95,20 @@ export function NoteMembersModal({
             onChange={(e) => setNewMemberEmail(e.target.value)}
             type="email"
           />
-          <Button onClick={() => addMember("viewer")}>
+          <Select
+            value={newMemberRole}
+            onValueChange={(val) => setNewMemberRole(val as MemberRole)}
+          >
+            <SelectTrigger className="w-24">
+              <SelectValue placeholder="Role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="owner">Owner</SelectItem>
+              <SelectItem value="editor">Editor</SelectItem>
+              <SelectItem value="viewer">Viewer</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={addMember}>
             <Plus className="h-5 w-5" />
           </Button>
         </div>

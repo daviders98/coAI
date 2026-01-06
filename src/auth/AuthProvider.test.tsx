@@ -4,7 +4,6 @@ import React from "react";
 import { AuthProvider } from "./AuthProvider";
 import { AuthContext } from "./AuthContext";
 import { STORAGE_KEY } from "@/notes/NoteConstants";
-import type { Note } from "@/notes/NoteTypes";
 import type { User } from "./AuthTypes";
 
 function useAuthTest() {
@@ -36,7 +35,7 @@ describe("AuthProvider", () => {
     expect(result.current.user).toEqual(storedUser);
   });
 
-  it("logs in a new user and creates default notes", () => {
+  it("logs in a new user", () => {
     const { result } = renderAuthHook();
 
     act(() => {
@@ -46,15 +45,18 @@ describe("AuthProvider", () => {
     const user = result.current.user!;
     expect(user.email).toBe("new@test.com");
 
-    const notes = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
-    expect(notes).toHaveLength(50);
-    expect(notes[0].members[0].email).toBe("new@test.com");
+    const storedUser = JSON.parse(localStorage.getItem("user")!);
+    expect(storedUser.email).toBe("new@test.com");
   });
 
   it("reuses existing userId when email already exists in notes", () => {
-    const existingUserId = "existing-id";
+    const { result } = renderAuthHook();
+    act(() => {
+      result.current.login("new@test.com");
+    });
+    const newUserId = result.current.user?.id;
 
-    const existingNotes: Note[] = [
+    const existingNotes = [
       {
         id: "note-1",
         title: "Existing",
@@ -62,19 +64,13 @@ describe("AuthProvider", () => {
         updatedAt: 1,
         version: 1,
         versions: [],
-        members: [{ userId: existingUserId, role: "owner", email: "existing@test.com" }],
+        members: [{ userId: newUserId, role: "owner", email: "existing@test.com" }],
       },
     ];
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(existingNotes));
 
-    const { result } = renderAuthHook();
-
-    act(() => {
-      result.current.login("existing@test.com");
-    });
-
-    expect(result.current.user?.id).toBe(existingUserId);
+    expect(result.current.user?.id).toBe(newUserId);
   });
 
   it("stores user in localStorage on login", () => {

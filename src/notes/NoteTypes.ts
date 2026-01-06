@@ -1,3 +1,5 @@
+import type { User } from "@/auth/AuthTypes";
+
 export type MemberRole = "owner" | "editor" | "viewer";
 
 export type NoteMember = {
@@ -33,7 +35,7 @@ export type Note = {
 
 export type NoteCardProps = {
   note: Note;
-  userId: string;
+  user: User;
   onDelete: (id: string) => void;
   onUpdate: (update: { id: string; patch: Partial<Note> }) => void;
   isEditOpen: boolean;

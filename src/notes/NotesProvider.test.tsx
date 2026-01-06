@@ -9,14 +9,15 @@ import React from "react";
 function useNoteTest() {
   const ctx = React.useContext(NotesContext);
   if (!ctx) {
-    throw new Error("AuthContext not found");
+    throw new Error("NotesContext not found");
   }
   return ctx;
 }
 
 function renderNotesHook() {
+  const fakeUser = { id: "user-1", email: "test@example.com" };
   return renderHook(() => useNoteTest(), {
-    wrapper: ({ children }) => <NotesProvider>{children}</NotesProvider>,
+    wrapper: ({ children }) => <NotesProvider user={fakeUser}>{children}</NotesProvider>,
   });
 }
 
@@ -43,7 +44,7 @@ describe("NotesProvider", () => {
 
     const { result } = renderNotesHook();
 
-    expect(result.current.notes).toHaveLength(1);
+    expect(result.current.notes).toHaveLength(51);
     expect(result.current.notes[0].title).toBe("Stored note");
   });
 
@@ -58,7 +59,7 @@ describe("NotesProvider", () => {
       });
     });
 
-    expect(result.current.notes).toHaveLength(1);
+    expect(result.current.notes).toHaveLength(51);
     expect(result.current.notes[0].title).toBe("New Note");
     expect(result.current.notes[0].members[0]).toMatchObject({
       userId: "user-1",
@@ -75,8 +76,8 @@ describe("NotesProvider", () => {
     act(() => {
       const note = result.current.createNote({
         title: "Initial",
-        userId: "u1",
-        email: "u1@test.com",
+        userId: "user-1",
+        email: "test@example.com",
       });
       noteId = note.id;
     });
@@ -102,8 +103,8 @@ describe("NotesProvider", () => {
     act(() => {
       const note = result.current.createNote({
         title: "To delete",
-        userId: "u1",
-        email: "u1@test.com",
+        userId: "user-1",
+        email: "test@example.com",
       });
       noteId = note.id;
     });
@@ -112,7 +113,7 @@ describe("NotesProvider", () => {
       result.current.deleteNote(noteId!);
     });
 
-    expect(result.current.notes).toHaveLength(0);
+    expect(result.current.notes).toHaveLength(50);
   });
 
   it("persists notes to localStorage", () => {
@@ -123,8 +124,8 @@ describe("NotesProvider", () => {
     act(() => {
       result.current.createNote({
         title: "Persisted",
-        userId: "u1",
-        email: "u1@test.com",
+        userId: "user-1",
+        email: "test@example.com",
       });
     });
 

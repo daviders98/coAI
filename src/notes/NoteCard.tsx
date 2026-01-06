@@ -10,13 +10,13 @@ import { ModalFocusField } from "./NoteConstants";
 
 export default function NoteCard({
   note,
-  userId,
+  user,
   onDelete,
   onUpdate,
   isEditOpen,
   onEditOpenChange,
 }: NoteCardProps) {
-  const role = getUserRole(note, userId);
+  const role = getUserRole(note, user.id, user.email);
   const canEdit = role === "owner" || role === "editor";
 
   const [isMembersOpen, setIsMembersOpen] = useState(false);
@@ -33,13 +33,14 @@ export default function NoteCard({
           <div className="flex items-start justify-between gap-2">
             <h2
               className={`min-w-0 flex-1 truncate font-medium ${
-                canEdit ? "cursor-pointer sm:hover:underline" : ""
+                canEdit ? "cursor-pointer sm:hover:underline" : "cursor-not-allowed opacity-70"
               }`}
               onClick={() => {
                 if (!canEdit) return;
                 setFocusField(ModalFocusField.TITLE as FocusField);
                 onEditOpenChange?.(true, ModalFocusField.TITLE as FocusField);
               }}
+              title={canEdit ? note.title || "Untitled" : "You cannot edit this note"}
             >
               {note.title || "Untitled"}
             </h2>
@@ -69,7 +70,9 @@ export default function NoteCard({
           </div>
 
           <p
-            className="max-h-24 break-words text-sm text-muted-foreground hover:cursor-pointer hover:underline"
+            className={`max-h-24 break-words text-sm text-muted-foreground ${
+              canEdit ? "cursor-pointer sm:hover:underline" : "cursor-not-allowed opacity-70"
+            }`}
             onClick={() => {
               if (!canEdit) return;
               setFocusField(ModalFocusField.DESCRIPTION as FocusField);

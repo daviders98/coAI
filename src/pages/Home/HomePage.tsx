@@ -103,7 +103,7 @@ function HomePage() {
             <NoteCard
               key={note.id}
               note={note}
-              userId={user.id}
+              user={user}
               onDelete={deleteNote}
               onUpdate={updateNote}
               isEditOpen={editingNoteId === note.id}
