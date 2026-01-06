@@ -1,44 +1,93 @@
-Problem 1: Collaborative Notes App
+# Collaborative Notes App
 
-Objective: Develop a React (or React Native) application that allows users to create, edit, and share notes in real-time. Your focus should be on state management, UI responsiveness, and handling concurrent edits efficiently.
+A small collaborative notes app built with React, Vite, and TypeScript.
+The focus of this project is clean component structure, predictable state,
+and avoiding unnecessary complexity.
 
-Requirements:
+## Setup Instructions
 
-Home Screen:
+### Prerequisites
 
-Display a list of user-created notes with timestamps.
+- Node.js >= 18
+- npm
 
-Allow users to create new notes and delete existing ones.
+### Install Dependencies
 
-Note Editing Screen:
+npm install
 
-Implement a rich-text editor for formatting (bold, italic, underline, lists).
+### Run the App
 
-Allow multiple users to edit a note in real-time (simulate real-time updates).
+npm run dev
 
-Handle conflicts when two users edit the same note simultaneously.
+The app will be available at:
+http://localhost:5173
 
-Performance Optimization:
+### Run Tests
 
-Optimize state updates to prevent unnecessary re-renders.
+npm run test
 
-Implement lazy loading for large note lists.
+## Tech Stack
 
-Use memoization and efficient data structures to handle frequent updates smoothly.
+- React 18
+- Vite
+- TypeScript
+- Tailwind CSS
+- React Router
+- Vitest
+- Testing Library
 
-Constraints:
+## Optimization Choices
 
-Emphasize clean, maintainable code with meaningful comments.
+### Vite
 
-Hardcode a small set of notes in local storage.
+- Vite was chosen for fast dev server startup and HMR
+- Minimal configuration with only required plugins
 
-Include basic tests for key components.
+### Minimal Dependencies
 
-Submission:
+- Only essential libraries were added
+- No heavy state management or real-time frameworks
+- Keeps bundle size small and code easier to reason about
 
-Provide your submission via a GitHub repository.
+### Memoization
 
-Include setup instructions to run the app.
+- useMemo is used where derived data (e.g. filtered notes) would otherwise
+  re-compute on every render
+- Prevents unnecessary work during re-renders
 
-Document your optimization choices.
+### Layout Stability
 
+- Note cards use flex layouts to ensure consistent bottom alignment
+- Prevents layout shifting when notes have different content lengths
+
+## State Management
+
+- React Context Providers used for auth and notes
+- Local state managed with useState
+- Simple and explicit data flow
+
+## Persistence
+
+- Notes stored in localStorage
+- No backend required to run the app
+- Enables basic persistence across reloads
+
+## Testing
+
+- UI and behavior tested with Vitest + Testing Library
+- Hooks and providers mocked for isolation
+- Browser APIs mocked for jsdom compatibility
+
+## Future Improvements
+
+- Replace useState with useReducer for more complex state transitions
+- Migrate providers to Zustand for simpler global state management
+- Add a real backend (REST or WebSocket)
+- Real-time collaboration with Redis or WebSockets
+- Better conflict resolution for simultaneous edits
+- User presence indicators
+
+## Notes
+
+This project intentionally avoids over-engineering and focuses on
+clarity, maintainability, and correctness over feature completeness.

@@ -8,7 +8,8 @@ import { DialogDescription } from "@radix-ui/react-dialog";
 import { EMPTY_EDITOR_VALUE, ModalFocusField } from "./NoteConstants";
 import { slateToPlainText } from "@/lib/utils";
 import DiffViewer from "@/components/DiffViewer";
-import { TriangleAlert } from "lucide-react";
+import { TriangleAlert, Sparkles } from "lucide-react";
+import { rewordNoteLocal } from "@/ai/rewordEngine";
 
 export function NoteEditModal({
   open,
@@ -26,33 +27,30 @@ export function NoteEditModal({
   const [, setHasLocalChanges] = useState(false);
   const [conflictDetected, setConflictDetected] = useState(false);
 
+  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+
   const titleRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<{ focus: () => void }>(null);
 
   useEffect(() => {
     if (!open) return;
-    const asyncUpdates = async () => {
-      setTitle(note.title ?? "");
-      setDescription(note.description ?? EMPTY_EDITOR_VALUE);
-      setBaseVersion(note.version ?? 1);
-
-      setHasLocalChanges(false);
-      setConflictDetected(false);
-    };
-    asyncUpdates();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, note.id]);
+    setTitle(note.title ?? "");
+    setDescription(note.description ?? EMPTY_EDITOR_VALUE);
+    setBaseVersion(note.version ?? 1);
+    setHasLocalChanges(false);
+    setConflictDetected(false);
+    setAiSuggestion(null);
+  }, [open, note.id, note.title, note.description, note.version]);
 
   useEffect(() => {
     if (!open) return;
-
     requestAnimationFrame(() => {
       if (focusField === ModalFocusField.DESCRIPTION) {
         editorRef.current?.focus();
       } else {
         const input = titleRef.current;
         if (!input) return;
-
         input.focus();
         const len = input.value.length;
         input.setSelectionRange(len, len);
@@ -60,30 +58,33 @@ export function NoteEditModal({
     });
   }, [open, focusField]);
 
+  async function handleReword() {
+    setAiLoading(true);
+    try {
+      const text = slateToPlainText(description);
+      const improved = await rewordNoteLocal(text);
+      setAiSuggestion(improved);
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
   function handleSave() {
     if (!note.id) return;
-
     if (baseVersion != null && note.version !== baseVersion) {
       setConflictDetected(true);
       return;
     }
-
     onSave({
       id: note.id,
-      patch: {
-        title: title.trim(),
-        description,
-      },
+      patch: { title: title.trim(), description },
     });
-
     onOpenChange(false);
   }
 
   const handleAcceptIncoming = () => {
     setTitle(note.title ?? "");
-    const finalDescription = note.description ?? EMPTY_EDITOR_VALUE;
-    setDescription(finalDescription as NoteDescription[]);
-
+    setDescription((note.description ?? EMPTY_EDITOR_VALUE) as NoteDescription[]);
     setConflictDetected(false);
     setBaseVersion(note.version ?? 1);
   };
@@ -96,66 +97,140 @@ export function NoteEditModal({
 
   const handleAcceptBoth = () => {
     const mergedTitle = `${title} / ${note.title ?? ""}`;
-    const currentDesc = description;
-    const incomingDesc = note.description ?? EMPTY_EDITOR_VALUE;
-
-    const mergedDescription = [...currentDesc, ...incomingDesc];
-
+    const mergedDescription = [...description, ...(note.description ?? EMPTY_EDITOR_VALUE)];
     setTitle(mergedTitle);
     setDescription(mergedDescription as NoteDescription[]);
-
     setConflictDetected(false);
     setBaseVersion(note.version ?? 1);
   };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-h-[90dvh] w-full max-w-xl overflow-hidden rounded-lg p-4"
         onOpenAutoFocus={(e) => e.preventDefault()}
+        className="flex max-h-[95dvh] w-[95dvw] max-w-xl flex-col overflow-hidden rounded-lg p-0 sm:max-h-[90vh]"
       >
-        <DialogHeader>
-          <DialogTitle>Note</DialogTitle>
-          <DialogDescription>Enter title and description</DialogDescription>
+        <DialogHeader className="shrink-0 border-b px-4 py-3">
+          <DialogTitle className="text-lg font-semibold">Edit Note</DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Make changes to your note here.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <Input
-            ref={titleRef}
-            value={title}
-            onChange={(e) => {
-              setTitle(e.target.value);
-              setHasLocalChanges(true);
-            }}
-            placeholder="Title"
-          />
-
-          <RichTextEditor
-            ref={editorRef}
-            value={description}
-            onChange={(v) => {
-              setDescription(v);
-              setHasLocalChanges(true);
-            }}
-          />
-          {conflictDetected && (
-            <Fragment>
-              <p className="flex flex-row items-center gap-2 text-sm text-destructive">
-                <TriangleAlert />
-                This note was updated elsewhere. Resolve conflicts to continue.
-              </p>
-              <DiffViewer
-                incoming={`${note.title ?? ""}\n${slateToPlainText(note.description ?? EMPTY_EDITOR_VALUE)}`}
-                current={`${title}\n${slateToPlainText(description)}`}
-                onAcceptIncoming={handleAcceptIncoming}
-                onAcceptCurrent={handleAcceptCurrent}
-                onAcceptBoth={handleAcceptBoth}
+        <div className="flex-1 overflow-y-auto px-4 py-4">
+          <div className="flex flex-col gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Title
+              </label>
+              <Input
+                ref={titleRef}
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  setHasLocalChanges(true);
+                }}
+                placeholder="Note title..."
+                className="h-11 text-base"
               />
-            </Fragment>
-          )}
+            </div>
 
-          <Button onClick={handleSave} disabled={conflictDetected}>
-            {conflictDetected ? "Resolve conflicts to save" : "Save"}
-          </Button>
+            <div className="space-y-2">
+              <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Description
+              </label>
+              <div className="min-h-[180px] rounded-md border">
+                <RichTextEditor
+                  ref={editorRef}
+                  value={description}
+                  onChange={(v) => {
+                    setDescription(v);
+                    setHasLocalChanges(true);
+                  }}
+                />
+              </div>
+            </div>
+
+            {(aiSuggestion || conflictDetected) && (
+              <div className="bg-muted/40 space-y-4 rounded-lg p-3">
+                {aiSuggestion && (
+                  <DiffViewer
+                    incoming={aiSuggestion}
+                    current={slateToPlainText(description)}
+                    onAcceptIncoming={() => {
+                      setDescription([
+                        { type: "paragraph", children: [{ text: aiSuggestion }] },
+                      ] as NoteDescription[]);
+                      setAiSuggestion(null);
+                    }}
+                    onAcceptCurrent={() => setAiSuggestion(null)}
+                    onAcceptBoth={() => {
+                      setDescription(
+                        (prev) =>
+                          [
+                            ...prev,
+                            { type: "paragraph", children: [{ text: aiSuggestion }] },
+                          ] as NoteDescription[],
+                      );
+                      setAiSuggestion(null);
+                    }}
+                  />
+                )}
+
+                {conflictDetected && (
+                  <Fragment>
+                    <p className="flex items-center gap-2 text-sm font-medium text-destructive">
+                      <TriangleAlert className="h-4 w-4" />
+                      Conflict detected
+                    </p>
+                    <DiffViewer
+                      incoming={slateToPlainText(note.description ?? EMPTY_EDITOR_VALUE)}
+                      current={slateToPlainText(description)}
+                      onAcceptIncoming={handleAcceptIncoming}
+                      onAcceptCurrent={handleAcceptCurrent}
+                      onAcceptBoth={handleAcceptBoth}
+                    />
+                  </Fragment>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="shrink-0 border-t bg-background px-4 py-3">
+          <div className="flex flex-col gap-2 sm:flex-row-reverse sm:justify-start">
+            <Button
+              onClick={handleSave}
+              disabled={conflictDetected}
+              className="h-11 w-full sm:w-auto"
+            >
+              {conflictDetected ? "Resolve conflicts" : "Save"}
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={handleReword}
+              disabled={aiLoading || conflictDetected}
+              className="h-11 w-full sm:w-auto"
+            >
+              {aiLoading ? (
+                "Rewording…"
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-purple-500" />
+                  Reword description
+                </span>
+              )}
+            </Button>
+
+            <Button
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+              className="h-11 w-full sm:hidden"
+            >
+              Cancel
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

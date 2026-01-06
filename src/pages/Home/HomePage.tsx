@@ -8,6 +8,7 @@ import { Plus } from "lucide-react";
 import SearchBar from "@/components/SearchBar";
 import type { FocusField } from "@/notes/NoteTypes";
 import { NOTESOFFSET } from "@/notes/NoteConstants";
+import { warmupRewordEngine } from "@/ai/rewordEngine";
 
 function HomePage() {
   const { user, logout } = useAuth();
@@ -31,6 +32,11 @@ function HomePage() {
       return text.toLowerCase().includes(search.toLowerCase());
     });
   }, [notes, search, user]);
+  useEffect(() => {
+    warmupRewordEngine().catch((e) => {
+      console.warn("Local AI warmup failed", e);
+    });
+  }, []);
 
   function handleCreateNote() {
     if (user) {

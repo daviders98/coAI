@@ -29,7 +29,7 @@ export default function DiffViewer({
         </div>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex justify-center gap-2">
         <button onClick={onAcceptIncoming} className="text-sm underline">
           Accept incoming
         </button>

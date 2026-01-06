@@ -26,7 +26,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return {
           id,
           title: `Note ${i + 1}`,
-          description: [{ type: "paragraph", children: [{ text: `Description ${i + 1}` }] }],
+          description: [
+            {
+              type: "paragraph",
+              children: [
+                {
+                  text: `meeting notes from today talked about roadmap but nothing was decided yet need to follow up later no more info yet`,
+                },
+              ],
+            },
+          ],
           updatedAt: now,
           version: 2,
           versions: [
@@ -39,7 +48,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             {
               version: 2,
               title: `Note ${i + 1}`,
-              description: [{ type: "paragraph", children: [{ text: `Description ${i + 1}` }] }],
+              description: [
+                {
+                  type: "paragraph",
+                  children: [
+                    {
+                      text: `meeting notes from today talked about roadmap but nothing was decided yet need to follow up later no more info yet`,
+                    },
+                  ],
+                },
+              ],
               updatedAt: now,
             },
           ],
