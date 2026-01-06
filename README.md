@@ -83,7 +83,7 @@ npm run test
 - Replace useState with useReducer for more complex state transitions
 - Migrate providers to Zustand for simpler global state management
 - Add a real backend (REST or WebSocket)
-- Real-time collaboration with Redis or WebSockets
+- Real-time collaboration with Redis and/or WebSockets
 - Better conflict resolution for simultaneous edits
 - User presence indicators
 
