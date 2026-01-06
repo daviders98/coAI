@@ -35,18 +35,22 @@ const note: Note = {
   members: [],
 };
 
-const userId = "user-1";
-
 const onDelete = vi.fn();
 const onUpdate = vi.fn();
 const onEditOpenChange = vi.fn();
+
+const user = {
+  id: "user-1",
+  email: "user@example.com",
+  name: "Test User",
+};
 
 function renderNote(overrides = {}) {
   return render(
     <ul>
       <NoteCard
         note={note}
-        userId={userId}
+        user={user}
         onDelete={onDelete}
         onUpdate={onUpdate}
         onEditOpenChange={onEditOpenChange}

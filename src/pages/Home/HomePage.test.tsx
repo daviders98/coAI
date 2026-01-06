@@ -16,6 +16,9 @@ vi.mock("@/notes/useNotes", () => ({
   useNotes: vi.fn(),
 }));
 
+vi.mock("@/ai/rewordEngine", () => ({
+  warmupRewordEngine: vi.fn(() => Promise.resolve()), // returns a promise
+}));
 //@ts-expect-error vi is defined.
 const mockedUseAuth = useAuth as vi.MockedFunction<typeof useAuth>;
 //@ts-expect-error vi is defined.
