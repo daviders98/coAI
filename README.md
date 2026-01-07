@@ -35,6 +35,7 @@ npm run test
 - React Router
 - Vitest
 - Testing Library
+- Shadcn (UI components are built using shadcn/ui, customized with Tailwind CSS.)
 
 ## Optimization Choices
 
@@ -59,6 +60,10 @@ npm run test
 
 - Note cards use flex layouts to ensure consistent bottom alignment
 - Prevents layout shifting when notes have different content lengths
+
+### UI
+
+- shadcn/ui components are used selectively as unopinionated building blocks, avoiding heavy UI frameworks while maintaining consistency and accessibility.
 
 ## State Management
 
